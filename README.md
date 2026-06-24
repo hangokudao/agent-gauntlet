@@ -13,6 +13,24 @@ npm install
 npm run build
 npm link
 agent-gauntlet init
+agent-gauntlet prepare localhost:3000 --profile content-site --browser
+```
+
+v3의 기본 흐름은 Codex가 실행할 runbook을 만드는 방식입니다.
+
+```bash
+agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --mode safe --profile content-site --browser
+```
+
+실행 후 `runs/<run-id>/gauntlet.md`를 Codex에게 넘겨 점검을 진행합니다.
+
+```text
+runs/<run-id>/gauntlet.md 기준으로 점검 진행해줘
+```
+
+기존처럼 CLI가 provider를 실행해서 바로 리포트를 만들 수도 있습니다.
+
+```bash
 agent-gauntlet run localhost:3000
 agent-gauntlet report <run-id>
 ```
@@ -44,6 +62,42 @@ agent-gauntlet run localhost:3000 --mode stress --allow-stress
 - `stress`: rate limit이나 중복 제출을 작은 요청 수 안에서 확인하는 모드입니다. 부하 테스트 도구가 아닙니다.
 
 외부 대상에서 `mutation`이나 `stress`를 쓰려면 설정 파일에서 명시적으로 허용해야 합니다.
+
+## v3 Prepare
+
+`prepare`는 Codex 안에서 실행할 점검 패킷을 만듭니다.
+
+```bash
+agent-gauntlet prepare <target> --profile content-site|auth-app|write-app|api --mode safe|mutation|stress
+```
+
+생성되는 구조:
+
+```text
+runs/<run-id>/
+  gauntlet.md
+  target.json
+  rules.md
+  agents/
+    security-reviewer.md
+    browser-chaos-user.md
+    content-reviewer.md
+    judge.md
+  evidence/
+    screenshots/
+    notes/
+    raw/
+  report.md
+```
+
+프로필:
+
+- `content-site`: 블로그, 문서, 소개 페이지, 읽기 전용 사이트
+- `auth-app`: 로그인, 회원가입, 계정, 세션이 있는 앱
+- `write-app`: 글쓰기, 댓글, 업로드, 수정/삭제가 있는 앱
+- `api`: API 중심 서비스
+
+`prepare`는 OpenAI API를 호출하지 않습니다. 규칙, 역할, 증거 폴더, 리포트 틀을 만들고 실제 관찰과 판단은 Codex가 수행합니다.
 
 ## Provider
 
@@ -114,6 +168,7 @@ Agent Gauntlet는 권한 있는 대상만 점검하기 위한 도구입니다.
 
 ```bash
 agent-gauntlet init [--force]
+agent-gauntlet prepare <target> [--profile content-site|auth-app|write-app|api] [--mode safe|mutation|stress]
 agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress]
 agent-gauntlet run <target> [--provider stub|openai] [--browser] [--dev "npm run dev"]
 agent-gauntlet report <run-id>

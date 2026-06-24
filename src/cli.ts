@@ -2,6 +2,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { DEFAULT_CONFIG, loadConfig, writeDefaultConfig } from "./config.js";
+import { parseTargetProfile, prepareGauntlet } from "./prepare.js";
 import { runGauntlet } from "./runner.js";
 
 interface ParsedFlags {
@@ -40,7 +41,7 @@ async function main(argv: string[]): Promise<void> {
       ownsTarget: Boolean(parsed.values.get("i-own-this-target")),
       allowMutation: Boolean(parsed.values.get("allow-mutation")),
       allowStress: Boolean(parsed.values.get("allow-stress")),
-      browser: Boolean(parsed.values.get("browser")),
+      browser: parsed.values.get("browser") ? true : undefined,
       noBrowser: Boolean(parsed.values.get("no-browser")),
       devCommand: stringFlag(parsed, "dev"),
       dryRun: Boolean(parsed.values.get("dry-run")),
@@ -54,6 +55,35 @@ async function main(argv: string[]): Promise<void> {
     console.log(`Findings: ${summary.findingCount}`);
     console.log(`Report: ${path.relative(process.cwd(), summary.reportPath)}`);
     console.log(`JSON: ${path.relative(process.cwd(), summary.jsonReportPath)}`);
+    return;
+  }
+
+  if (command === "prepare") {
+    const parsed = parseFlags(rest);
+    const target = parsed.positionals[0];
+    if (!target) {
+      throw new Error("Usage: agent-gauntlet prepare <target>");
+    }
+
+    const summary = await prepareGauntlet({
+      target,
+      profile: parseTargetProfile(stringFlag(parsed, "profile")),
+      mode: runModeFlag(parsed),
+      ownsTarget: Boolean(parsed.values.get("i-own-this-target")),
+      allowMutation: Boolean(parsed.values.get("allow-mutation")),
+      allowStress: Boolean(parsed.values.get("allow-stress")),
+      browser: Boolean(parsed.values.get("browser")),
+      configPath: stringFlag(parsed, "config"),
+      outputDir: stringFlag(parsed, "output")
+    });
+
+    console.log(`Prepared Run ID: ${summary.runId}`);
+    console.log(`Target: ${summary.target.url}`);
+    console.log(`Profile: ${summary.profile}`);
+    console.log(`Mode: ${summary.mode}`);
+    console.log(`Agents: ${summary.agents.join(", ")}`);
+    console.log(`Runbook: ${path.relative(process.cwd(), summary.gauntletPath)}`);
+    console.log(`Report: ${path.relative(process.cwd(), summary.reportPath)}`);
     return;
   }
 
@@ -85,7 +115,7 @@ function parseFlags(args: string[]): ParsedFlags {
     }
 
     const name = arg.slice(2);
-    if (["scenario", "config", "output", "mode", "provider", "model", "dev"].includes(name)) {
+    if (["scenario", "profile", "config", "output", "mode", "provider", "model", "dev"].includes(name)) {
       const value = args[index + 1];
       if (!value || value.startsWith("--")) {
         throw new Error(`--${name} requires a value.`);
@@ -133,11 +163,13 @@ function printHelp(): void {
 
 Usage:
   agent-gauntlet init [--force]
+  agent-gauntlet prepare <target> [--profile content-site|auth-app|write-app|api] [--mode safe|mutation|stress]
   agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress] [--provider stub|openai]
   agent-gauntlet run <target> [--browser] [--dev "npm run dev"] [--i-own-this-target] [--dry-run]
   agent-gauntlet report <run-id>
 
 Examples:
+  agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --profile content-site --browser
   agent-gauntlet run localhost:3000
   agent-gauntlet run localhost:3000 --mode mutation
   agent-gauntlet run https://blog.yozm.dev --i-own-this-target

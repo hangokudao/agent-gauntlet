@@ -1,6 +1,6 @@
 {
   "name": "agent-gauntlet",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A small CLI harness for running agent-style quality and security gauntlets against authorized web apps.",
   "type": "module",
   "bin": {

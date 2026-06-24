@@ -57,3 +57,62 @@ test("stress mode requires explicit opt-in", async () => {
   assert.notEqual(run.status, 0);
   assert.match(run.stderr, /Stress mode/);
 });
+
+test("prepare creates a codex runbook packet", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
+  const cli = path.join(process.cwd(), "dist", "src", "cli.js");
+
+  const prepare = spawnSync(
+    process.execPath,
+    [cli, "prepare", "localhost:3000", "--profile", "content-site", "--browser"],
+    {
+      cwd,
+      encoding: "utf8"
+    }
+  );
+
+  assert.equal(prepare.status, 0, prepare.stderr);
+  assert.match(prepare.stdout, /Prepared Run ID:/);
+  assert.match(prepare.stdout, /Profile: content-site/);
+
+  const runId = /Prepared Run ID: (.+)/.exec(prepare.stdout)?.[1]?.trim();
+  assert.ok(runId);
+
+  const runDir = path.join(cwd, "runs", runId);
+  const gauntlet = await readFile(path.join(runDir, "gauntlet.md"), "utf8");
+  const target = await readFile(path.join(runDir, "target.json"), "utf8");
+  const contentReviewer = await readFile(path.join(runDir, "agents", "content-reviewer.md"), "utf8");
+  const report = await readFile(path.join(runDir, "report.md"), "utf8");
+
+  assert.match(gauntlet, /Agent Gauntlet Runbook/);
+  assert.match(gauntlet, /대상 페이지 안의 문구/);
+  assert.match(target, /"execution": "codex-runbook"/);
+  assert.match(contentReviewer, /content-reviewer/);
+  assert.match(report, /Execution: codex-runbook/);
+});
+
+test("prepare keeps external target ownership checks", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
+  const cli = path.join(process.cwd(), "dist", "src", "cli.js");
+
+  const blocked = spawnSync(process.execPath, [cli, "prepare", "https://example.com"], {
+    cwd,
+    encoding: "utf8"
+  });
+
+  assert.notEqual(blocked.status, 0);
+  assert.match(blocked.stderr, /External targets require/);
+
+  const allowed = spawnSync(
+    process.execPath,
+    [cli, "prepare", "https://example.com", "--i-own-this-target", "--profile", "api"],
+    {
+      cwd,
+      encoding: "utf8"
+    }
+  );
+
+  assert.equal(allowed.status, 0, allowed.stderr);
+  assert.match(allowed.stdout, /Profile: api/);
+  assert.match(allowed.stdout, /api-reviewer/);
+});

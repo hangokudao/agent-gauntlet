@@ -6,6 +6,8 @@ export type RunMode = "safe" | "mutation" | "stress";
 
 export type ProviderName = "stub" | "openai";
 
+export type TargetProfile = "content-site" | "auth-app" | "write-app" | "api";
+
 export interface TargetInfo {
   input: string;
   url: string;
@@ -96,4 +98,27 @@ export interface RunSummary {
   target: TargetInfo;
   mode: RunMode;
   findingCount: number;
+}
+
+export interface PrepareOptions {
+  target: string;
+  profile?: TargetProfile;
+  mode?: RunMode;
+  ownsTarget?: boolean;
+  allowMutation?: boolean;
+  allowStress?: boolean;
+  browser?: boolean;
+  configPath?: string;
+  outputDir?: string;
+}
+
+export interface PrepareSummary {
+  runId: string;
+  runDir: string;
+  gauntletPath: string;
+  reportPath: string;
+  target: TargetInfo;
+  mode: RunMode;
+  profile: TargetProfile;
+  agents: string[];
 }
