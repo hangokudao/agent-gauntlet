@@ -14,10 +14,25 @@ export const DEFAULT_AGENTS = [
 export const DEFAULT_CONFIG: Required<GauntletConfig> = {
   agents: DEFAULT_AGENTS,
   scenario: "default",
+  mode: "safe",
   provider: "stub",
+  model: "gpt-5.4-mini",
   outputDir: "runs",
+  browser: {
+    enabled: false,
+    maxPages: 5
+  },
+  dev: {
+    command: "",
+    readyTimeoutMs: 30000
+  },
   target: {
-    allowExternal: false
+    allowExternal: false,
+    allowedHosts: ["localhost", "127.0.0.1", "::1"],
+    sameOriginOnly: true,
+    maxRequests: 30,
+    mutationAllowed: false,
+    stressAllowed: false
   }
 };
 
@@ -42,10 +57,25 @@ export async function loadConfig(configPath?: string): Promise<Required<Gauntlet
   return {
     agents: parsed.agents ?? DEFAULT_CONFIG.agents,
     scenario: parsed.scenario ?? DEFAULT_CONFIG.scenario,
+    mode: parsed.mode ?? DEFAULT_CONFIG.mode,
     provider: parsed.provider ?? DEFAULT_CONFIG.provider,
+    model: parsed.model ?? DEFAULT_CONFIG.model,
     outputDir: parsed.outputDir ?? DEFAULT_CONFIG.outputDir,
+    browser: {
+      enabled: parsed.browser?.enabled ?? DEFAULT_CONFIG.browser.enabled,
+      maxPages: parsed.browser?.maxPages ?? DEFAULT_CONFIG.browser.maxPages
+    },
+    dev: {
+      command: parsed.dev?.command ?? DEFAULT_CONFIG.dev.command,
+      readyTimeoutMs: parsed.dev?.readyTimeoutMs ?? DEFAULT_CONFIG.dev.readyTimeoutMs
+    },
     target: {
-      allowExternal: parsed.target?.allowExternal ?? DEFAULT_CONFIG.target.allowExternal
+      allowExternal: parsed.target?.allowExternal ?? DEFAULT_CONFIG.target.allowExternal,
+      allowedHosts: parsed.target?.allowedHosts ?? DEFAULT_CONFIG.target.allowedHosts,
+      sameOriginOnly: parsed.target?.sameOriginOnly ?? DEFAULT_CONFIG.target.sameOriginOnly,
+      maxRequests: parsed.target?.maxRequests ?? DEFAULT_CONFIG.target.maxRequests,
+      mutationAllowed: parsed.target?.mutationAllowed ?? DEFAULT_CONFIG.target.mutationAllowed,
+      stressAllowed: parsed.target?.stressAllowed ?? DEFAULT_CONFIG.target.stressAllowed
     }
   };
 }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { assertTargetAllowed, normalizeTarget, TargetError } from "../src/target.js";
+import { assertModeAllowed, assertTargetAllowed, normalizeTarget, TargetError } from "../src/target.js";
 
 test("normalizes localhost without a scheme", () => {
   const target = normalizeTarget("localhost:3000");
@@ -22,4 +22,19 @@ test("requires ownership confirmation for external URLs", () => {
   const target = normalizeTarget("https://example.com");
   assert.throws(() => assertTargetAllowed(target, {}), TargetError);
   assert.doesNotThrow(() => assertTargetAllowed(target, { ownsTarget: true }));
+});
+
+test("allows external URLs when hostname is allowlisted", () => {
+  const target = normalizeTarget("https://example.com");
+  assert.doesNotThrow(() => assertTargetAllowed(target, { allowedHosts: ["example.com"] }));
+});
+
+test("mode safety defaults are conservative", () => {
+  const local = normalizeTarget("localhost:3000");
+  const external = normalizeTarget("https://example.com");
+
+  assert.doesNotThrow(() => assertModeAllowed(local, "mutation", {}));
+  assert.throws(() => assertModeAllowed(external, "mutation", {}), TargetError);
+  assert.throws(() => assertModeAllowed(local, "stress", {}), TargetError);
+  assert.doesNotThrow(() => assertModeAllowed(local, "stress", { allowStress: true }));
 });

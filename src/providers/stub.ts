@@ -8,8 +8,9 @@ export class StubProvider implements AgentProvider {
       `Agent: ${input.agent.name}`,
       `Target: ${input.target.url}`,
       `Scenario: ${input.scenario}`,
+      `Mode: ${input.mode}`,
       "",
-      "This v1 provider is intentionally conservative. It prepares auditable agent output and performs only passive checks."
+      "This stub provider is intentionally conservative. It prepares auditable agent output and performs only passive checks."
     ];
 
     if (input.agent.name === "security-reviewer") {
@@ -24,6 +25,19 @@ export class StubProvider implements AgentProvider {
       notes.push("Manual follow-up: convert confirmed findings into regression tests before shipping fixes.");
     }
 
+    if (input.mode === "mutation") {
+      notes.push("Mutation mode selected: use disposable test accounts and resettable data before applying data-changing checks.");
+    }
+
+    if (input.mode === "stress") {
+      notes.push("Stress mode selected: keep request volume bounded and verify rate limits without unbounded load.");
+    }
+
+    if (input.browserObservation.enabled) {
+      notes.push(`Browser observation visited ${input.browserObservation.pagesVisited.length} page(s).`);
+      findings.push(...browserFindings(input.browserObservation, input.target.url));
+    }
+
     return {
       agentName: input.agent.name,
       status: "completed",
@@ -34,6 +48,24 @@ export class StubProvider implements AgentProvider {
       }))
     };
   }
+}
+
+function browserFindings(observation: { consoleErrors: string[]; status: string }, target: string): Finding[] {
+  if (observation.status !== "completed" || observation.consoleErrors.length === 0) {
+    return [];
+  }
+
+  return [
+    {
+      title: "Browser console errors were observed",
+      severity: "low",
+      category: "browser-runtime",
+      target,
+      reproductionSteps: ["Run Agent Gauntlet with --browser and inspect the browser observation notes."],
+      evidence: observation.consoleErrors.slice(0, 3).join(" | "),
+      recommendation: "Open the app in a browser, reproduce the console errors, and fix the underlying runtime issue."
+    }
+  ];
 }
 
 async function passiveSecurityCheck(url: string): Promise<{ notes: string[]; findings: Finding[] }> {

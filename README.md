@@ -1,6 +1,6 @@
 # Agent Gauntlet
 
-Agent Gauntlet는 내가 소유하거나 테스트 권한이 있는 웹앱을 대상으로 여러 에이전트 관점의 점검을 실행하고, 결과를 하나의 마크다운 리포트로 합치는 작은 CLI 도구입니다.
+Agent Gauntlet는 내가 소유하거나 테스트 권한이 있는 웹앱을 대상으로 여러 에이전트 관점의 점검을 실행하고, 결과를 Markdown/JSON 리포트로 합치는 작은 CLI 도구입니다.
 
 출발점은 Andrej Karpathy가 Sequoia 대담에서 말한 아이디어입니다. 기존 코딩 퍼즐 대신, 큰 앱을 만들게 하고, 실제 사용을 시뮬레이션한 뒤, 여러 고추론 에이전트가 그 앱을 깨보게 하는 방식이 agentic engineering 평가에 더 어울린다는 이야기였습니다. 관련 구간은 YouTube 영상 `Andrej Karpathy: From Vibe Coding to Agentic Engineering`의 18:48 부근입니다.
 
@@ -29,20 +29,76 @@ agent-gauntlet run localhost:5173
 agent-gauntlet run https://blog.yozm.dev --i-own-this-target
 ```
 
+## v2 모드
+
+기본값은 `safe`입니다.
+
+```bash
+agent-gauntlet run localhost:3000 --mode safe
+agent-gauntlet run localhost:3000 --mode mutation
+agent-gauntlet run localhost:3000 --mode stress --allow-stress
+```
+
+- `safe`: 읽기 중심, 비파괴 탐색, 가짜 입력만 사용합니다.
+- `mutation`: disposable local/staging 대상에서 테스트 계정, 게시글, 레코드 생성/수정/삭제를 허용하는 모드입니다.
+- `stress`: rate limit이나 중복 제출을 작은 요청 수 안에서 확인하는 모드입니다. 부하 테스트 도구가 아닙니다.
+
+외부 대상에서 `mutation`이나 `stress`를 쓰려면 설정 파일에서 명시적으로 허용해야 합니다.
+
+## Provider
+
+기본 provider는 `stub`입니다. 실제 LLM 기반 점검은 OpenAI provider를 사용합니다.
+
+```bash
+OPENAI_API_KEY=... agent-gauntlet run localhost:3000 --provider openai
+```
+
+선택적으로 모델을 지정할 수 있습니다.
+
+```bash
+agent-gauntlet run localhost:3000 --provider openai --model gpt-5.4-mini
+```
+
+OpenAI provider는 구조화 JSON 출력을 기대하고, 결과가 스키마에 맞지 않으면 해당 agent를 실패로 기록합니다.
+
+## Browser Runner
+
+브라우저 관찰을 켜려면 Playwright가 필요합니다.
+
+```bash
+npm install -D playwright
+npx playwright install chromium
+agent-gauntlet run localhost:3000 --browser
+```
+
+브라우저 관찰은 같은 origin의 링크를 제한된 개수만 방문하고, 스크린샷과 콘솔 에러를 run 폴더에 저장합니다.
+
+## Dev Server
+
+앱을 켜고 기다렸다가 gauntlet을 실행할 수 있습니다.
+
+```bash
+agent-gauntlet run localhost:5173 --dev "npm run dev"
+```
+
+실행 후 dev server는 자동으로 종료됩니다.
+
 ## 안전 경계
 
-Agent Gauntlet v1은 권한 있는 대상만 점검하기 위한 도구입니다.
+Agent Gauntlet는 권한 있는 대상만 점검하기 위한 도구입니다.
 
 - 로컬호스트 대상은 기본 허용합니다.
-- 외부 사이트는 `--i-own-this-target` 또는 설정 파일의 `target.allowExternal=true`가 필요합니다.
-- v1은 파괴적 공격, 부하 테스트, 무차별 대입, 실제 침투 도구 실행을 하지 않습니다.
-- 지금 provider는 보수적인 stub/passive provider입니다. 에이전트별 산출물 구조를 만들고, `security-reviewer`는 기본 보안 헤더 같은 수동적 HTTP 점검만 수행합니다.
+- 외부 사이트는 `--i-own-this-target`, `target.allowExternal=true`, 또는 `target.allowedHosts`가 필요합니다.
+- `mutation`은 로컬 대상이거나 `--allow-mutation` 또는 `target.mutationAllowed=true`가 필요합니다.
+- `stress`는 로컬 대상에서 `--allow-stress`를 주거나 `target.stressAllowed=true`가 필요합니다.
+- v2도 실제 침투 도구, 무차별 대입, 무제한 부하 테스트, third-party 스캔은 하지 않습니다.
 
 ## 명령
 
 ```bash
 agent-gauntlet init [--force]
-agent-gauntlet run <target> [--scenario name] [--i-own-this-target] [--dry-run]
+agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress]
+agent-gauntlet run <target> [--provider stub|openai] [--browser] [--dev "npm run dev"]
 agent-gauntlet report <run-id>
 ```
 
@@ -59,10 +115,25 @@ agent-gauntlet report <run-id>
     "test-writer"
   ],
   "scenario": "default",
+  "mode": "safe",
   "provider": "stub",
+  "model": "gpt-5.4-mini",
   "outputDir": "runs",
+  "browser": {
+    "enabled": false,
+    "maxPages": 5
+  },
+  "dev": {
+    "command": "",
+    "readyTimeoutMs": 30000
+  },
   "target": {
-    "allowExternal": false
+    "allowExternal": false,
+    "allowedHosts": ["localhost", "127.0.0.1", "::1"],
+    "sameOriginOnly": true,
+    "maxRequests": 30,
+    "mutationAllowed": false,
+    "stressAllowed": false
   }
 }
 ```
@@ -78,19 +149,26 @@ runs/
     security-reviewer/
       notes.md
       findings.json
-    browser-chaos-user/
-      notes.md
-      findings.json
+    browser/
+      home.png
     report.md
+    report.json
 ```
 
-## v1 범위
+## 시나리오
 
-이 버전은 완성형 보안 스캐너가 아닙니다. 목적은 다음 세 가지입니다.
+`scenarios/`에는 기본 점검 지침이 들어 있습니다.
 
-1. 대상 URL과 에이전트 점검 관점을 표준화합니다.
-2. 실행 결과를 재현 가능한 폴더 구조로 남깁니다.
-3. 나중에 Codex/OpenAI/local agent provider를 붙일 수 있는 작은 경계를 마련합니다.
+- `default`
+- `blog`
+- `auth-app`
+- `twitter-clone`
+
+예:
+
+```bash
+agent-gauntlet run localhost:3000 --scenario twitter-clone --mode mutation
+```
 
 ## 개발
 

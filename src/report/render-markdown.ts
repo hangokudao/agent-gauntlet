@@ -1,20 +1,33 @@
-import type { AgentResult, Finding, TargetInfo } from "../types.js";
+import type { AgentResult, BrowserObservation, Finding, RunMode, TargetInfo } from "../types.js";
 
 export function renderMarkdownReport(input: {
   runId: string;
   target: TargetInfo;
   scenario: string;
+  mode: RunMode;
   dryRun: boolean;
   findings: Finding[];
   results: AgentResult[];
+  browserObservation: BrowserObservation;
 }): string {
+  const severityCounts = countBySeverity(input.findings);
   const lines = [
     `# Agent Gauntlet Report: ${input.runId}`,
     "",
     `- Target: ${input.target.url}`,
     `- Scenario: ${input.scenario}`,
-    `- Mode: ${input.dryRun ? "dry-run" : "stub-provider"}`,
+    `- Mode: ${input.mode}`,
+    `- Execution: ${input.dryRun ? "dry-run" : "agent-provider"}`,
     `- Findings: ${input.findings.length}`,
+    `- Severity summary: high ${severityCounts.high}, medium ${severityCounts.medium}, low ${severityCounts.low}, info ${severityCounts.info}`,
+    "",
+    "## Browser Observation",
+    "",
+    `- Status: ${input.browserObservation.status}`,
+    `- Pages visited: ${input.browserObservation.pagesVisited.length}`,
+    `- Console errors: ${input.browserObservation.consoleErrors.length}`,
+    "",
+    input.browserObservation.notes,
     "",
     "## Findings",
     ""
@@ -49,4 +62,14 @@ export function renderMarkdownReport(input: {
   }
 
   return lines.join("\n");
+}
+
+function countBySeverity(findings: Finding[]): Record<Finding["severity"], number> {
+  return findings.reduce(
+    (counts, finding) => {
+      counts[finding.severity] += 1;
+      return counts;
+    },
+    { info: 0, low: 0, medium: 0, high: 0 }
+  );
 }

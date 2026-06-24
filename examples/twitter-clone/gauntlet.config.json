@@ -6,9 +6,28 @@
     "test-writer"
   ],
   "scenario": "twitter-clone",
+  "mode": "safe",
   "provider": "stub",
+  "model": "gpt-5.4-mini",
   "outputDir": "runs",
+  "browser": {
+    "enabled": false,
+    "maxPages": 5
+  },
+  "dev": {
+    "command": "",
+    "readyTimeoutMs": 30000
+  },
   "target": {
-    "allowExternal": false
+    "allowExternal": false,
+    "allowedHosts": [
+      "localhost",
+      "127.0.0.1",
+      "::1"
+    ],
+    "sameOriginOnly": true,
+    "maxRequests": 30,
+    "mutationAllowed": true,
+    "stressAllowed": false
   }
 }

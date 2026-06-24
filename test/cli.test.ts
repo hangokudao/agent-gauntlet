@@ -17,6 +17,7 @@ test("init and dry-run create a report", async () => {
     encoding: "utf8"
   });
   assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /Mode: safe/);
 
   const runId = /Run ID: (.+)/.exec(run.stdout)?.[1]?.trim();
   assert.ok(runId);
@@ -26,5 +27,33 @@ test("init and dry-run create a report", async () => {
   assert.match(report.stdout, /Agent Gauntlet Report/);
 
   const reportFile = await readFile(path.join(cwd, "runs", runId, "report.md"), "utf8");
-  assert.match(reportFile, /Mode: dry-run/);
+  const reportJson = await readFile(path.join(cwd, "runs", runId, "report.json"), "utf8");
+  assert.match(reportFile, /Execution: dry-run/);
+  assert.match(reportJson, /"mode": "safe"/);
+});
+
+test("dry-run supports local mutation mode", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
+  const cli = path.join(process.cwd(), "dist", "src", "cli.js");
+
+  const run = spawnSync(process.execPath, [cli, "run", "localhost:3000", "--mode", "mutation", "--dry-run"], {
+    cwd,
+    encoding: "utf8"
+  });
+
+  assert.equal(run.status, 0, run.stderr);
+  assert.match(run.stdout, /Mode: mutation/);
+});
+
+test("stress mode requires explicit opt-in", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
+  const cli = path.join(process.cwd(), "dist", "src", "cli.js");
+
+  const run = spawnSync(process.execPath, [cli, "run", "localhost:3000", "--mode", "stress", "--dry-run"], {
+    cwd,
+    encoding: "utf8"
+  });
+
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /Stress mode/);
 });

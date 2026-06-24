@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { AgentResult, TargetInfo } from "./types.js";
+import type { AgentResult, BrowserObservation, RunMode, TargetInfo } from "./types.js";
 
 export async function createRunDirectory(outputDir: string): Promise<{ runId: string; runDir: string }> {
   const runId = new Date().toISOString().replace(/[:.]/g, "-");
@@ -24,7 +24,10 @@ export function runConfigPayload(input: {
   runId: string;
   target: TargetInfo;
   scenario: string;
+  mode: RunMode;
   agents: string[];
+  provider: string;
+  browserObservation: BrowserObservation;
   dryRun: boolean;
 }): unknown {
   return input;

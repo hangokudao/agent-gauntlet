@@ -1,4 +1,4 @@
-import type { TargetInfo } from "./types.js";
+import type { RunMode, TargetInfo } from "./types.js";
 
 export class TargetError extends Error {
   constructor(message: string) {
@@ -36,8 +36,12 @@ export function normalizeTarget(input: string): TargetInfo {
 
 export function assertTargetAllowed(
   target: TargetInfo,
-  options: { ownsTarget?: boolean; allowExternal?: boolean }
+  options: { ownsTarget?: boolean; allowExternal?: boolean; allowedHosts?: string[] }
 ): void {
+  if (isAllowedHost(target.hostname, options.allowedHosts)) {
+    return;
+  }
+
   if (target.isLocal) {
     return;
   }
@@ -47,8 +51,43 @@ export function assertTargetAllowed(
   }
 
   throw new TargetError(
-    "External targets require --i-own-this-target or target.allowExternal=true in gauntlet.config.json."
+    "External targets require --i-own-this-target, target.allowExternal=true, or an explicit target.allowedHosts entry."
   );
+}
+
+export function assertModeAllowed(
+  target: TargetInfo,
+  mode: RunMode,
+  options: {
+    allowMutation?: boolean;
+    allowStress?: boolean;
+    mutationAllowed?: boolean;
+    stressAllowed?: boolean;
+  }
+): void {
+  if (mode === "safe") {
+    return;
+  }
+
+  if (mode === "mutation") {
+    if (target.isLocal || options.allowMutation || options.mutationAllowed) {
+      return;
+    }
+
+    throw new TargetError(
+      "Mutation mode can change target data. Use a local target, --allow-mutation, or target.mutationAllowed=true."
+    );
+  }
+
+  if (mode === "stress") {
+    if ((target.isLocal && options.allowStress) || options.stressAllowed) {
+      return;
+    }
+
+    throw new TargetError(
+      "Stress mode can affect availability. Use --allow-stress on a local target or target.stressAllowed=true."
+    );
+  }
 }
 
 function hasScheme(value: string): boolean {
@@ -75,4 +114,13 @@ function isLocalHostname(hostname: string): boolean {
     lower.endsWith(".localhost") ||
     /^127(?:\.\d{1,3}){3}$/.test(lower)
   );
+}
+
+function isAllowedHost(hostname: string, allowedHosts: string[] | undefined): boolean {
+  if (!allowedHosts?.length) {
+    return false;
+  }
+
+  const lower = hostname.toLowerCase();
+  return allowedHosts.some((host) => host.toLowerCase() === lower);
 }
