@@ -51,6 +51,12 @@ runs/<run-id>/
   report.md
 ```
 
+## Public Tool, Private Runs
+
+Keep generated target data out of the public repository. `runs/`, `reports/`, `evidence/`, `private/`, and `gauntlet.config.local.json` are ignored by default.
+
+Use [docs/improvement-log.md](docs/improvement-log.md) for public, generalized notes about how Agent Gauntlet improved. Keep real target domains, screenshots, raw responses, and site-specific findings in a private workspace. See [docs/decisions/0001-keep-target-runs-private.md](docs/decisions/0001-keep-target-runs-private.md) for the boundary.
+
 ## Profiles
 
 - `content-site`: blogs, docs, marketing pages, read-only sites

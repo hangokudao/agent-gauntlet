@@ -51,6 +51,12 @@ runs/<run-id>/
   report.md
 ```
 
+## 공개 도구와 비공개 점검 데이터
+
+생성된 대상별 데이터는 공개 repo에 넣지 않습니다. `runs/`, `reports/`, `evidence/`, `private/`, `gauntlet.config.local.json`은 기본적으로 무시합니다.
+
+Agent Gauntlet가 어떻게 좋아졌는지는 [docs/improvement-log.md](docs/improvement-log.md)에 일반화해서 기록합니다. 실제 대상 도메인, 스크린샷, raw response, 사이트별 finding은 별도 비공개 작업공간에 둡니다. 경계 기준은 [docs/decisions/0001-keep-target-runs-private.md](docs/decisions/0001-keep-target-runs-private.md)에 적어 둡니다.
+
 ## 프로필
 
 - `content-site`: 블로그, 문서, 소개 페이지, 읽기 전용 사이트

@@ -1,5 +1,9 @@
 node_modules/
 dist/
 runs/
+reports/
+evidence/
+private/
+gauntlet.config.local.json
 *.log
 .env
