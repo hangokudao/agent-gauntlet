@@ -2,11 +2,11 @@
 
 [English](README.md) | [한국어](README.ko.md)
 
-Agent Gauntlet는 내가 소유했거나 테스트 권한이 있는 웹앱을 대상으로 Codex가 실행할 수 있는 점검 runbook을 만드는 도구입니다.
+Agent Gauntlet는 내가 소유했거나 테스트 권한을 받은 웹앱에 대해, Codex가 바로 실행할 수 있는 점검 runbook을 만들어 줍니다.
 
-완전 자동 보안 스캐너를 목표로 하지 않습니다. 규칙, 에이전트 역할, 증거 폴더, 리포트 템플릿을 하나의 실행 패킷으로 만들어서 Codex가 반복 가능한 방식으로 대상을 점검하게 하는 것이 핵심입니다.
+완전 자동 보안 스캐너를 목표로 하지는 않습니다. 대신 규칙, 에이전트별 역할, 증거를 모을 폴더, 리포트 템플릿을 한 번에 준비합니다. Codex가 같은 절차로 대상을 살펴볼 수 있게 하려는 도구입니다.
 
-출발점은 Andrej Karpathy가 말한 agentic engineering 아이디어입니다. 프로젝트가 단순히 빌드되는지만 보는 대신, 여러 강한 에이전트가 앱을 깨보게 하고 그 결과를 리포트하게 하는 방식입니다.
+아이디어의 출발점은 Andrej Karpathy가 말한 agentic engineering입니다. 프로젝트가 빌드되는지에서 멈추지 않고, 여러 유능한 에이전트가 앱을 일부러 깨뜨려 보게 한 뒤 그 결과를 리포트하게 하자는 방식입니다.
 
 참고: [Andrej Karpathy: From Vibe Coding to Agentic Engineering](https://www.youtube.com/watch?v=96jN2OCOfLs&t=1128s), 18:48 부근.
 
@@ -20,19 +20,19 @@ agent-gauntlet init
 agent-gauntlet prepare localhost:3000 --profile content-site --browser
 ```
 
-외부 사이트는 내가 소유했거나 테스트 허가를 받은 대상일 때만 명시적으로 실행합니다.
+외부 사이트는 소유했거나 테스트 허가를 받은 경우에만 명시적으로 실행합니다.
 
 ```bash
 agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --mode safe --profile content-site --browser
 ```
 
-그 다음 Codex에게 생성된 runbook을 실행하게 합니다.
+그다음 Codex에게 생성된 runbook을 기준으로 점검해 달라고 요청합니다.
 
 ```text
 runs/<run-id>/gauntlet.md 기준으로 점검 진행해줘
 ```
 
-## 생성되는 것
+## 생성물
 
 ```text
 runs/<run-id>/
@@ -61,10 +61,10 @@ runs/<run-id>/
 ## 모드
 
 - `safe`: 읽기 전용 점검, 브라우징, 헤더, 콘솔 에러, 공개 콘텐츠, 메타데이터 확인
-- `mutation`: 로컬이나 staging처럼 disposable한 대상에서 테스트 데이터 생성/수정/삭제를 허용
-- `stress`: 작은 범위의 rate limit/가용성 확인 계획용이며 부하 테스트 도구가 아님
+- `mutation`: 로컬이나 staging처럼 지워도 되는 테스트 대상에서 데이터 생성/수정/삭제를 허용
+- `stress`: 작은 범위의 rate limit/가용성 확인을 계획하는 용도이며 부하 테스트 도구가 아님
 
-외부 사이트는 먼저 `safe`로 시작하는 것을 권장합니다.
+외부 사이트는 먼저 `safe`로 시작하는 편이 안전합니다.
 
 ## 안전 규칙
 
@@ -76,20 +76,20 @@ runs/<run-id>/
 
 ## 로컬 로그인 예제
 
-로그인과 글쓰기 흐름이 있는 작은 테스트 앱이 필요하면 로컬 fixture를 사용할 수 있습니다.
+로그인과 글쓰기 흐름이 있는 작은 테스트 앱이 필요하면 로컬 예제 앱을 사용할 수 있습니다.
 
 ```bash
 node examples/auth-app/server.js
 agent-gauntlet prepare localhost:4321 --profile auth-app --mode safe --browser
 ```
 
-직접 CLI 실행을 테스트하려면 Agent Gauntlet가 서버를 켜고 끄게 할 수도 있습니다.
+CLI 실행 흐름까지 보려면 Agent Gauntlet가 서버를 켜고 끄게 할 수 있습니다.
 
 ```bash
 agent-gauntlet run localhost:4321 --scenario auth-app --mode safe --dev "node examples/auth-app/server.js"
 ```
 
-이 fixture는 의도적으로 작고 불완전합니다. 배포하지 마세요.
+이 예제 앱은 의도적으로 작고 불완전합니다. 배포하지 마세요.
 
 ## 명령
 
@@ -100,7 +100,7 @@ agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress] [--d
 agent-gauntlet report <run-id>
 ```
 
-권장 흐름은 `prepare`입니다. `run`은 간단한 로컬 스모크 테스트와 리포트 생성용으로 남겨둡니다.
+기본 흐름은 `prepare`입니다. `run`은 간단한 로컬 스모크 테스트와 리포트 생성용으로 남겨둡니다.
 
 ## 개발
 
