@@ -1,0 +1,14 @@
+{
+  "agents": [
+    "security-reviewer",
+    "browser-chaos-user",
+    "data-integrity-reviewer",
+    "test-writer"
+  ],
+  "scenario": "twitter-clone",
+  "provider": "stub",
+  "outputDir": "runs",
+  "target": {
+    "allowExternal": false
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "agents": [
+    "security-reviewer",
+    "data-integrity-reviewer",
+    "test-writer"
+  ],
+  "scenario": "auth-app",
+  "provider": "stub",
+  "outputDir": "runs",
+  "target": {
+    "allowExternal": false
+  }
+}

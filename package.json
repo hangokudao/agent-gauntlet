@@ -1,0 +1,33 @@
+{
+  "name": "agent-gauntlet",
+  "version": "0.1.0",
+  "description": "A small CLI harness for running agent-style quality and security gauntlets against authorized web apps.",
+  "type": "module",
+  "bin": {
+    "agent-gauntlet": "./dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "agents",
+    "examples",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test \"dist/test/*.test.js\""
+  },
+  "keywords": [
+    "agentic-engineering",
+    "red-team",
+    "testing",
+    "cli"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "typescript": "^5.8.3"
+  }
+}

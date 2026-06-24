@@ -1,0 +1,13 @@
+{
+  "agents": [
+    "security-reviewer",
+    "browser-chaos-user",
+    "test-writer"
+  ],
+  "scenario": "blog",
+  "provider": "stub",
+  "outputDir": "runs",
+  "target": {
+    "allowExternal": false
+  }
+}
