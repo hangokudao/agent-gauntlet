@@ -11,7 +11,8 @@
     "agents",
     "scenarios",
     "examples",
-    "README.md"
+    "README.md",
+    "README.ko.md"
   ],
   "scripts": {
     "build": "tsc",
