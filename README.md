@@ -83,6 +83,23 @@ agent-gauntlet run localhost:5173 --dev "npm run dev"
 
 실행 후 dev server는 자동으로 종료됩니다.
 
+## 로컬 로그인 예제
+
+로그인 있는 테스트 대상이 없다면 `examples/auth-app`을 사용할 수 있습니다.
+
+```bash
+node examples/auth-app/server.js
+agent-gauntlet run localhost:4321 --scenario auth-app --mode safe
+```
+
+또는 gauntlet이 예제 서버를 직접 켜고 끄게 할 수 있습니다.
+
+```bash
+agent-gauntlet run localhost:4321 --scenario auth-app --mode safe --dev "node examples/auth-app/server.js"
+```
+
+이 예제는 로컬 실험용으로만 만든 disposable 앱입니다. 의도적으로 단순한 로그인, 세션, 프로필, 글 작성 흐름을 포함합니다.
+
 ## 안전 경계
 
 Agent Gauntlet는 권한 있는 대상만 점검하기 위한 도구입니다.
