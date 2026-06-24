@@ -169,10 +169,10 @@ Usage:
   agent-gauntlet report <run-id>
 
 Examples:
-  agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --profile content-site --browser
+  agent-gauntlet prepare localhost:3000 --profile content-site --browser
   agent-gauntlet run localhost:3000
   agent-gauntlet run localhost:3000 --mode mutation
-  agent-gauntlet run https://blog.yozm.dev --i-own-this-target
+  agent-gauntlet run <your-authorized-url> --i-own-this-target
 `);
 }
 

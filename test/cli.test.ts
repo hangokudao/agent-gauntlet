@@ -95,7 +95,7 @@ test("prepare keeps external target ownership checks", async () => {
   const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
   const cli = path.join(process.cwd(), "dist", "src", "cli.js");
 
-  const blocked = spawnSync(process.execPath, [cli, "prepare", "https://example.com"], {
+  const blocked = spawnSync(process.execPath, [cli, "prepare", "https://example.test"], {
     cwd,
     encoding: "utf8"
   });
@@ -105,7 +105,7 @@ test("prepare keeps external target ownership checks", async () => {
 
   const allowed = spawnSync(
     process.execPath,
-    [cli, "prepare", "https://example.com", "--i-own-this-target", "--profile", "api"],
+    [cli, "prepare", "https://example.test", "--i-own-this-target", "--profile", "api"],
     {
       cwd,
       encoding: "utf8"

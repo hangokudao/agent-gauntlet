@@ -101,7 +101,7 @@ function addLocalScheme(value: string): string {
   }
 
   throw new TargetError(
-    "External targets must include a scheme, for example https://example.com."
+    "External targets must include a scheme, for example https://example.test."
   );
 }
 

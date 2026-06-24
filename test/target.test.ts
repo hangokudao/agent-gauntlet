@@ -15,23 +15,23 @@ test("accepts a full localhost URL", () => {
 });
 
 test("rejects external targets without a scheme", () => {
-  assert.throws(() => normalizeTarget("example.com"), TargetError);
+  assert.throws(() => normalizeTarget("example.test"), TargetError);
 });
 
 test("requires ownership confirmation for external URLs", () => {
-  const target = normalizeTarget("https://example.com");
+  const target = normalizeTarget("https://example.test");
   assert.throws(() => assertTargetAllowed(target, {}), TargetError);
   assert.doesNotThrow(() => assertTargetAllowed(target, { ownsTarget: true }));
 });
 
 test("allows external URLs when hostname is allowlisted", () => {
-  const target = normalizeTarget("https://example.com");
-  assert.doesNotThrow(() => assertTargetAllowed(target, { allowedHosts: ["example.com"] }));
+  const target = normalizeTarget("https://example.test");
+  assert.doesNotThrow(() => assertTargetAllowed(target, { allowedHosts: ["example.test"] }));
 });
 
 test("mode safety defaults are conservative", () => {
   const local = normalizeTarget("localhost:3000");
-  const external = normalizeTarget("https://example.com");
+  const external = normalizeTarget("https://example.test");
 
   assert.doesNotThrow(() => assertModeAllowed(local, "mutation", {}));
   assert.throws(() => assertModeAllowed(external, "mutation", {}), TargetError);

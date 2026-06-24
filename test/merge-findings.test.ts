@@ -14,7 +14,7 @@ test("merges duplicate findings and preserves highest severity", () => {
           title: "Missing CSP",
           severity: "low",
           category: "security-header",
-          target: "https://example.com/",
+          target: "https://example.test/",
           reproductionSteps: ["Check header"],
           evidence: "missing",
           recommendation: "add csp"
@@ -30,7 +30,7 @@ test("merges duplicate findings and preserves highest severity", () => {
           title: "missing csp",
           severity: "medium",
           category: "security-header",
-          target: "https://example.com/",
+          target: "https://example.test/",
           reproductionSteps: ["Check header"],
           evidence: "missing",
           recommendation: "add csp"

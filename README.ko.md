@@ -23,7 +23,7 @@ agent-gauntlet prepare localhost:3000 --profile content-site --browser
 외부 사이트는 소유했거나 테스트 허가를 받은 경우에만 명시적으로 실행합니다.
 
 ```bash
-agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --mode safe --profile content-site --browser
+agent-gauntlet prepare <your-authorized-url> --i-own-this-target --mode safe --profile content-site --browser
 ```
 
 그다음 Codex에게 생성된 runbook을 기준으로 점검해 달라고 요청합니다.

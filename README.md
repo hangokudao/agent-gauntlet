@@ -23,7 +23,7 @@ agent-gauntlet prepare localhost:3000 --profile content-site --browser
 For an external target, you must explicitly confirm that you own it or have permission to test it.
 
 ```bash
-agent-gauntlet prepare https://skills.yozm.dev --i-own-this-target --mode safe --profile content-site --browser
+agent-gauntlet prepare <your-authorized-url> --i-own-this-target --mode safe --profile content-site --browser
 ```
 
 Then ask Codex to execute the generated runbook:
