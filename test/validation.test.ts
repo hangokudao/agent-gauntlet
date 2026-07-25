@@ -48,3 +48,14 @@ test("rejects invalid structured agent payloads", () => {
     /severity/
   );
 });
+
+test("requires findings to be an array", () => {
+  assert.throws(
+    () => validateAgentPayload({ notes: "Checked the app." }, "security-reviewer"),
+    /findings must be an array/
+  );
+  assert.throws(
+    () => validateAgentPayload({ notes: "Checked the app.", findings: {} }, "security-reviewer"),
+    /findings must be an array/
+  );
+});

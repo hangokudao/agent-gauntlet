@@ -29,4 +29,24 @@ Privacy:
 
 ## Entries
 
-No public improvement entries yet.
+## 2026-07-26
+
+### Refine the OpenAI provider boundary
+
+Area:
+- provider, CLI, docs, tests, and CI
+
+Reason:
+- The OpenAI integration needed explicit protocol handling and a testable boundary before changing the active model default.
+
+Change:
+- Split OpenAI configuration, request construction, HTTP transport, and response parsing into focused modules.
+- Handle refusals, incomplete responses, failed responses, malformed output, and bounded HTTP errors explicitly.
+- Default active configs to `gpt-5.6` and document model precedence and custom Responses API endpoints.
+- Add Node 18.20 and Node 20 CI coverage with a compatible pnpm release.
+
+Verification:
+- `pnpm test`
+
+Privacy:
+- No target domains, evidence files, raw responses, screenshots, or secrets were added.

@@ -5,7 +5,10 @@ const severities = new Set<Severity>(["info", "low", "medium", "high"]);
 export function validateAgentPayload(payload: unknown, agentName: string): AgentResult {
   const object = requireRecord(payload, "agent result");
   const notes = requireString(object.notes, "notes");
-  const rawFindings = Array.isArray(object.findings) ? object.findings : [];
+  const rawFindings = object.findings;
+  if (!Array.isArray(rawFindings)) {
+    throw new Error("findings must be an array.");
+  }
 
   return {
     agentName,

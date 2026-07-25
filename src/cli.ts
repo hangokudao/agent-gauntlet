@@ -164,7 +164,7 @@ function printHelp(): void {
 Usage:
   agent-gauntlet init [--force]
   agent-gauntlet prepare <target> [--profile content-site|auth-app|write-app|api] [--mode safe|mutation|stress]
-  agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress] [--provider stub|openai]
+  agent-gauntlet run <target> [--scenario name] [--mode safe|mutation|stress] [--provider stub|openai] [--model model]
   agent-gauntlet run <target> [--browser] [--dev "npm run dev"] [--i-own-this-target] [--dry-run]
   agent-gauntlet report <run-id>
 
