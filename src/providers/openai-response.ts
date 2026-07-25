@@ -69,6 +69,9 @@ function findRefusal(output: unknown[]): string | undefined {
     }
     for (const part of record.content as unknown[]) {
       const contentPart = requireContentPart(part);
+      if (contentPart.type === "output_text") {
+        requireString(contentPart.text, "OpenAI response output text");
+      }
       if (contentPart.type === "refusal") {
         return requireString(contentPart.refusal, "OpenAI response refusal");
       }

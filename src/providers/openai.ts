@@ -22,19 +22,17 @@ export class OpenAIProvider implements AgentProvider {
     const config = resolveOpenAIConfig(this.options.model, this.options.env);
     const request = buildOpenAIRequest(config.model, input);
     const response = await postOpenAIResponse(config, request, this.options.fetchImpl);
-    let outputText: string;
     try {
-      outputText = extractOpenAIOutputText(response);
+      const outputText = extractOpenAIOutputText(response);
+      let payload: unknown;
+      try {
+        payload = JSON.parse(outputText);
+      } catch {
+        throw new Error("OpenAI response output was not valid JSON.");
+      }
+      return validateAgentPayload(payload, input.agent.name);
     } catch (error) {
       throw new Error(safeOpenAIErrorMessage(error, config.apiKey));
     }
-
-    let payload: unknown;
-    try {
-      payload = JSON.parse(outputText);
-    } catch {
-      throw new Error("OpenAI response output was not valid JSON.");
-    }
-    return validateAgentPayload(payload, input.agent.name);
   }
 }

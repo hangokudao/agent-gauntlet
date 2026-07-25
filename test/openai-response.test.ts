@@ -158,4 +158,19 @@ test("rejects malformed typed response fields", () => {
       }),
     /output text must be a non-empty string/
   );
+  assert.throws(
+    () =>
+      extractOpenAIOutputText({
+        status: "completed",
+        output_text: resultJson,
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [{ type: "output_text", text: 42 }]
+          }
+        ]
+      }),
+    /output text must be a non-empty string/
+  );
 });

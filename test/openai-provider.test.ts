@@ -128,6 +128,53 @@ test("redacts secrets from successful response envelope errors", async () => {
   );
 });
 
+test("redacts and bounds structured output validation errors", async () => {
+  const secret = "secret-test-key";
+  const secretFieldProvider = new OpenAIProvider({
+    model: "gpt-5.6",
+    env: { OPENAI_API_KEY: secret },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          status: "completed",
+          output_text: JSON.stringify({ notes: "ok", findings: [], [secret]: true })
+        })
+      )
+  });
+  await assert.rejects(
+    () => secretFieldProvider.runAgent(input),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.doesNotMatch(error.message, new RegExp(secret));
+      return true;
+    }
+  );
+
+  const oversizedFieldProvider = new OpenAIProvider({
+    model: "gpt-5.6",
+    env: { OPENAI_API_KEY: secret },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          status: "completed",
+          output_text: JSON.stringify({
+            notes: "ok",
+            findings: [],
+            ["x".repeat(3000)]: true
+          })
+        })
+      )
+  });
+  await assert.rejects(
+    () => oversizedFieldProvider.runAgent(input),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.ok(error.message.length < 2200);
+      return true;
+    }
+  );
+});
+
 test("reports malformed HTTP and structured output JSON clearly", async () => {
   const invalidHttp = new OpenAIProvider({
     model: "gpt-5.6",
