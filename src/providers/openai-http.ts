@@ -48,10 +48,15 @@ export async function postOpenAIResponse(
   }
 
   try {
-    return JSON.parse(redact(responseBody, config.apiKey));
+    return JSON.parse(responseBody);
   } catch {
     throw new Error("OpenAI API response was not valid JSON.");
   }
+}
+
+export function safeOpenAIErrorMessage(error: unknown, secret: string): string {
+  const message = error instanceof Error ? error.message : String(error);
+  return bounded(message, secret);
 }
 
 function bounded(value: string, secret: string, maxLength = 2048): string {

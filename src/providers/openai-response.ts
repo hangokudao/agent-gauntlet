@@ -1,7 +1,10 @@
 export function extractOpenAIOutputText(data: unknown): string {
   const response = requireRecord(data, "OpenAI response");
   const status = response.status;
-  const error = optionalRecord(response.error);
+  let error: Record<string, unknown> | undefined;
+  if (hasOwn(response, "error") && response.error !== null) {
+    error = requireRecord(response.error, "OpenAI response error");
+  }
 
   if (status === "failed" || error) {
     const code = optionalString(error?.code);
@@ -30,7 +33,13 @@ export function extractOpenAIOutputText(data: unknown): string {
   }
 
   const output = response.output;
-  const outputText = optionalString(response.output_text);
+  if (hasOwn(response, "output") && !Array.isArray(output)) {
+    throw new Error("OpenAI response output must be an array.");
+  }
+  let outputText: string | undefined;
+  if (hasOwn(response, "output_text")) {
+    outputText = requireString(response.output_text, "OpenAI response output_text");
+  }
   if (!Array.isArray(output) && !outputText) {
     throw new Error("OpenAI response output must be an array.");
   }
@@ -61,7 +70,7 @@ function findRefusal(output: unknown[]): string | undefined {
     for (const part of record.content as unknown[]) {
       const contentPart = requireContentPart(part);
       if (contentPart.type === "refusal") {
-        return optionalString(contentPart.refusal) ?? "no refusal reason provided";
+        return requireString(contentPart.refusal, "OpenAI response refusal");
       }
     }
   }
@@ -80,10 +89,7 @@ function collectOutputText(output: unknown[]): string[] {
       if (contentPart.type !== "output_text") {
         continue;
       }
-      const text = optionalString(contentPart.text);
-      if (text) {
-        textParts.push(text);
-      }
+      textParts.push(requireString(contentPart.text, "OpenAI response output text"));
     }
   }
   return textParts;
@@ -136,6 +142,18 @@ function optionalRecord(value: unknown): Record<string, unknown> | undefined {
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function requireString(value: unknown, name: string): string {
+  const text = optionalString(value);
+  if (!text) {
+    throw new Error(`${name} must be a non-empty string.`);
+  }
+  return text;
+}
+
+function hasOwn(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
 }
 
 function compact(value: string, maxLength = 2048): string {

@@ -1,7 +1,11 @@
 import type { AgentProvider } from "./provider.js";
 import { validateAgentPayload } from "../validation.js";
 import { resolveOpenAIConfig } from "./openai-config.js";
-import { postOpenAIResponse, type FetchLike } from "./openai-http.js";
+import {
+  postOpenAIResponse,
+  safeOpenAIErrorMessage,
+  type FetchLike
+} from "./openai-http.js";
 import { buildOpenAIRequest } from "./openai-request.js";
 import { extractOpenAIOutputText } from "./openai-response.js";
 
@@ -18,7 +22,12 @@ export class OpenAIProvider implements AgentProvider {
     const config = resolveOpenAIConfig(this.options.model, this.options.env);
     const request = buildOpenAIRequest(config.model, input);
     const response = await postOpenAIResponse(config, request, this.options.fetchImpl);
-    const outputText = extractOpenAIOutputText(response);
+    let outputText: string;
+    try {
+      outputText = extractOpenAIOutputText(response);
+    } catch (error) {
+      throw new Error(safeOpenAIErrorMessage(error, config.apiKey));
+    }
 
     let payload: unknown;
     try {

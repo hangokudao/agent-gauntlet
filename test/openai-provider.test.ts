@@ -88,6 +88,46 @@ test("bounds and redacts non-2xx response bodies", async () => {
   );
 });
 
+test("parses successful responses before applying secret redaction", async () => {
+  const provider = new OpenAIProvider({
+    model: "gpt-5.6",
+    env: { OPENAI_API_KEY: "completed" },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          status: "completed",
+          output_text: JSON.stringify({ notes: "ok", findings: [] })
+        })
+      )
+  });
+
+  assert.equal((await provider.runAgent(input)).notes, "ok");
+});
+
+test("redacts secrets from successful response envelope errors", async () => {
+  const provider = new OpenAIProvider({
+    model: "gpt-5.6",
+    env: { OPENAI_API_KEY: "secret-test-key" },
+    fetchImpl: async () =>
+      new Response(
+        JSON.stringify({
+          status: "failed",
+          error: { code: "gateway_error", message: "secret-test-key was rejected" }
+        })
+      )
+  });
+
+  await assert.rejects(
+    () => provider.runAgent(input),
+    (error: unknown) => {
+      assert.ok(error instanceof Error);
+      assert.match(error.message, /gateway_error/);
+      assert.doesNotMatch(error.message, /secret-test-key/);
+      return true;
+    }
+  );
+});
+
 test("reports malformed HTTP and structured output JSON clearly", async () => {
   const invalidHttp = new OpenAIProvider({
     model: "gpt-5.6",

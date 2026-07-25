@@ -118,3 +118,44 @@ test("rejects missing Responses API protocol discriminators", () => {
     /content part type must be a string/
   );
 });
+
+test("rejects malformed typed response fields", () => {
+  const validOutput = [
+    {
+      type: "message",
+      role: "assistant",
+      content: [{ type: "output_text", text: resultJson }]
+    }
+  ];
+
+  assert.throws(
+    () => extractOpenAIOutputText({ status: "completed", error: "failed", output: validOutput }),
+    /response error must be an object/
+  );
+  assert.throws(
+    () =>
+      extractOpenAIOutputText({
+        status: "completed",
+        output: "corrupt",
+        output_text: resultJson
+      }),
+    /output must be an array/
+  );
+  assert.throws(
+    () =>
+      extractOpenAIOutputText({
+        status: "completed",
+        output: [
+          {
+            type: "message",
+            role: "assistant",
+            content: [
+              { type: "output_text", text: 42 },
+              { type: "output_text", text: resultJson }
+            ]
+          }
+        ]
+      }),
+    /output text must be a non-empty string/
+  );
+});
