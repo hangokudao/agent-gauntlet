@@ -108,6 +108,19 @@ agent-gauntlet report <run-id>
 
 `prepare` is the recommended workflow. `run` remains available for simple local smoke checks and generated reports.
 
+## OpenAI Provider
+
+The default provider is `stub`. To run the agent roles through the OpenAI Responses API, set an API key and select the provider:
+
+```bash
+export OPENAI_API_KEY="<your-api-key>"
+agent-gauntlet run localhost:3000 --provider openai --model gpt-5.6
+```
+
+The active default model is `gpt-5.6`, which routes to GPT-5.6 Sol. Model precedence is `OPENAI_MODEL` → `--model` → config `model` → the default.
+
+`OPENAI_BASE_URL` may point to an OpenAI Responses-compatible API root, a path ending in `/v1`, or the full `/v1/responses` endpoint. Chat Completions-only services and Azure-specific authentication or deployment URLs are not translated automatically.
+
 ## Development
 
 ```bash

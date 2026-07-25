@@ -108,6 +108,19 @@ agent-gauntlet report <run-id>
 
 기본 흐름은 `prepare`입니다. `run`은 간단한 로컬 스모크 테스트와 리포트 생성용으로 남겨둡니다.
 
+## OpenAI provider
+
+기본 provider는 `stub`입니다. 에이전트 역할을 OpenAI Responses API로 실행하려면 API key를 설정하고 provider를 선택합니다.
+
+```bash
+export OPENAI_API_KEY="<your-api-key>"
+agent-gauntlet run localhost:3000 --provider openai --model gpt-5.6
+```
+
+기본 모델은 GPT-5.6 Sol로 연결되는 `gpt-5.6`입니다. 모델 우선순위는 `OPENAI_MODEL` → `--model` → config의 `model` → 기본값 순서입니다.
+
+`OPENAI_BASE_URL`에는 OpenAI Responses 호환 API root, `/v1`로 끝나는 경로, 또는 전체 `/v1/responses` endpoint를 지정할 수 있습니다. Chat Completions 전용 서비스나 Azure 고유 인증·deployment URL은 자동 변환하지 않습니다.
+
 ## 개발
 
 ```bash

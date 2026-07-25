@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
@@ -11,6 +11,8 @@ test("init and dry-run create a report", async () => {
 
   const init = spawnSync(process.execPath, [cli, "init"], { cwd, encoding: "utf8" });
   assert.equal(init.status, 0, init.stderr);
+  const config = JSON.parse(await readFile(path.join(cwd, "gauntlet.config.json"), "utf8"));
+  assert.equal(config.model, "gpt-5.6");
 
   const run = spawnSync(process.execPath, [cli, "run", "localhost:3000", "--dry-run"], {
     cwd,
@@ -115,4 +117,34 @@ test("prepare keeps external target ownership checks", async () => {
   assert.equal(allowed.status, 0, allowed.stderr);
   assert.match(allowed.stdout, /Profile: api/);
   assert.match(allowed.stdout, /api-reviewer/);
+});
+
+test("OpenAI provider failures remain isolated to each agent", async () => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "agent-gauntlet-"));
+  const cli = path.join(process.cwd(), "dist", "src", "cli.js");
+  await writeFile(
+    path.join(cwd, "gauntlet.config.json"),
+    JSON.stringify({
+      agents: ["security-reviewer", "test-writer"],
+      provider: "openai",
+      model: "gpt-5.6"
+    }),
+    "utf8"
+  );
+  const env = { ...process.env };
+  delete env.OPENAI_API_KEY;
+
+  const run = spawnSync(process.execPath, [cli, "run", "localhost:3000"], {
+    cwd,
+    env,
+    encoding: "utf8"
+  });
+
+  assert.equal(run.status, 0, run.stderr);
+  const runId = /Run ID: (.+)/.exec(run.stdout)?.[1]?.trim();
+  assert.ok(runId);
+  const report = await readFile(path.join(cwd, "runs", runId, "report.md"), "utf8");
+  assert.match(report, /### security-reviewer[\s\S]+Status: failed/);
+  assert.match(report, /### test-writer[\s\S]+Status: failed/);
+  assert.match(report, /OPENAI_API_KEY is required/);
 });

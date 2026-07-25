@@ -1,11 +1,25 @@
 import type { AgentResult, Finding, Severity } from "./types.js";
 
 const severities = new Set<Severity>(["info", "low", "medium", "high"]);
+const agentResultKeys = new Set(["notes", "findings"]);
+const findingKeys = new Set([
+  "title",
+  "severity",
+  "category",
+  "target",
+  "reproductionSteps",
+  "evidence",
+  "recommendation"
+]);
 
 export function validateAgentPayload(payload: unknown, agentName: string): AgentResult {
   const object = requireRecord(payload, "agent result");
+  requireExactKeys(object, agentResultKeys, "agent result");
   const notes = requireString(object.notes, "notes");
-  const rawFindings = Array.isArray(object.findings) ? object.findings : [];
+  const rawFindings = object.findings;
+  if (!Array.isArray(rawFindings)) {
+    throw new Error("findings must be an array.");
+  }
 
   return {
     agentName,
@@ -17,6 +31,7 @@ export function validateAgentPayload(payload: unknown, agentName: string): Agent
 
 export function validateFinding(payload: unknown, index = 0): Finding {
   const object = requireRecord(payload, `finding ${index + 1}`);
+  requireExactKeys(object, findingKeys, `finding ${index + 1}`);
   const severity = requireString(object.severity, `finding ${index + 1}.severity`);
   if (!severities.has(severity as Severity)) {
     throw new Error(`finding ${index + 1}.severity must be info, low, medium, or high.`);
@@ -52,4 +67,15 @@ function requireString(value: unknown, name: string): string {
     throw new Error(`${name} must be a non-empty string.`);
   }
   return value.trim();
+}
+
+function requireExactKeys(
+  object: Record<string, unknown>,
+  allowedKeys: Set<string>,
+  name: string
+): void {
+  const unexpectedKey = Object.keys(object).find((key) => !allowedKeys.has(key));
+  if (unexpectedKey) {
+    throw new Error(`${name} contains unexpected field "${unexpectedKey}".`);
+  }
 }

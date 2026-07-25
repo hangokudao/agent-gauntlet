@@ -48,3 +48,48 @@ test("rejects invalid structured agent payloads", () => {
     /severity/
   );
 });
+
+test("requires findings to be an array", () => {
+  assert.throws(
+    () => validateAgentPayload({ notes: "Checked the app." }, "security-reviewer"),
+    /findings must be an array/
+  );
+  assert.throws(
+    () => validateAgentPayload({ notes: "Checked the app.", findings: {} }, "security-reviewer"),
+    /findings must be an array/
+  );
+});
+
+test("rejects fields excluded by the strict output schema", () => {
+  assert.throws(
+    () =>
+      validateAgentPayload(
+        { notes: "Checked the app.", findings: [], debug: "unexpected" },
+        "security-reviewer"
+      ),
+    /agent result contains unexpected field "debug"/
+  );
+
+  assert.throws(
+    () =>
+      validateAgentPayload(
+        {
+          notes: "Checked the app.",
+          findings: [
+            {
+              title: "Missing CSP",
+              severity: "low",
+              category: "security-header",
+              target: "http://localhost:3000/",
+              reproductionSteps: ["Request the homepage"],
+              evidence: "Header was absent",
+              recommendation: "Add a CSP header",
+              debug: "unexpected"
+            }
+          ]
+        },
+        "security-reviewer"
+      ),
+    /finding 1 contains unexpected field "debug"/
+  );
+});

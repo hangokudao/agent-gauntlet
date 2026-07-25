@@ -16,7 +16,7 @@ export const DEFAULT_CONFIG: Required<GauntletConfig> = {
   scenario: "default",
   mode: "safe",
   provider: "stub",
-  model: "gpt-5.4-mini",
+  model: "gpt-5.6",
   outputDir: "runs",
   browser: {
     enabled: false,
